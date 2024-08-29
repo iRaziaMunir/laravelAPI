@@ -11,9 +11,9 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class AuthController extends Controller
 {
     
-    // public function __construct() {
-    //     $this->middleware('auth:api', ['except' => ['login', 'register']]);
-    // }
+    public function __construct() {
+        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -96,21 +96,45 @@ class AuthController extends Controller
 
     }
 
+    // public function refresh()
+    // {
+    //     $newToken = JWTAuth::refresh();  // Refresh the JWT token
+    //     return response()->json([
+    //         'status'=> 'success',
+    //         'user'=> Auth::guard('api')->user(),
+    //         'authorization'=>[
+    //             'token'=>$newToken,
+    //             'type'=>'bearer',
+    //         ]
+    //     ]);
+    // }
+
     public function refresh()
-    {
+{
+    try {
+        if (! $token = JWTAuth::getToken()) {
+            return response()->json(['error' => 'Token not provided'], 400);
+        }
+
+        $newToken = JWTAuth::refresh($token);
+
         return response()->json([
-            'status'=> 'success',
-            'user'=> Auth::user(),
-            'authorization'=>[
-                'token'=>Auth::refresh(),
-                'type'=>'bearer',
+            'status' => 'success',
+            'user' => Auth::guard('api')->user(),
+            'authorization' => [
+                'token' => $newToken,
+                'type' => 'bearer',
             ]
         ]);
+    } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
     }
+}
+
 
     public function logout()
     {
-        auth()->logout();
+        Auth::guard('api')->logout();  // Specify the guard to logout from
         return response()->json([
                     "status" => 1,
                     "message" => "User logged out"

@@ -24,10 +24,13 @@ use Illuminate\Support\Facades\Route;
 
     Route::controller(AuthController::class)->group(function(){
 
-        Route::post('/register', 'register');
+        Route::resource('/register', 'register');
         Route::post('/login', 'login')->name('login');
     });
+    Route::get('/login', function(){
 
+        return "";
+    });
 
 
 Route::group(['middleware' => ['auth:api']], function(){
