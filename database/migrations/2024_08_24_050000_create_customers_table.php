@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('state')->nullable();
             $table->string('postalCode');
             $table->string('country');
-            $table->integer('salesRepEmployeeNumber');
+            $table->integer('salesRepEmployeeNumber')->nullable();
             $table->decimal('creditLimit');
             $table->timestamps();
 

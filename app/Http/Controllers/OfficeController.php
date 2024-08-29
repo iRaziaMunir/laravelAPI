@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Office;
@@ -9,7 +8,6 @@ class OfficeController extends Controller
 {
     //13.Fetch all offices located in a specific country:
 
-        
     public function getCountryOffice($country){
 
         $countryOffice = Office::where('country', $country)->get();

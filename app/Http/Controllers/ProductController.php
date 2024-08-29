@@ -11,9 +11,14 @@ class ProductController extends Controller
     //1.Get all products along with their product line description
     public function getProductsWithProductLine(){
 
-        $products = Product::join('productlines', 'products.productLine', '=', 'productlines.productLine')
-        ->select('products.*', 'productlines.textDescription as productLineDescription')
-        ->paginate(10);
+        // $products = Product::join('productlines', 'products.productLine', '=', 'productlines.productLine')
+        // ->select('products.*', 'productlines.textDescription as productLineDescription')
+        // ->paginate(10);
+        $products = Product::with(['productLine' => function($query)
+        {
+            $query->select('productLine', 'textDescription');
+        }])->get();
+        // ->paginate(10);
 
         return response()->json($products);
     }

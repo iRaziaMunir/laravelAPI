@@ -16,8 +16,10 @@ class PaymentController extends Controller
     }
     //10.List all payments made within a specific date range:
 
-        public function getPaymentsWithinDateRange($startDate, $endDate){
+        public function getPaymentsWithinDateRange(){
 
+            $startDate = request()->input('startDate');
+            $endDate = request()->input('endDate');
             $paymentsWithinDateRange = Payment::whereBetween('paymentDate', [$startDate, $endDate])
             ->paginate(10);
 

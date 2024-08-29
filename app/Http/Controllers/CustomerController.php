@@ -3,18 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
     public function getCustomersWithSalesRep(){
 
-        $customers = Customer::join('employees', 'customers.salesRepEmployeeNumber', '=', 'employees.employeeNumber')
-        ->select('customers.*', 'employees.firstName as salesRepFirstName', 'employees.lastName as salesRepLastName')
-        // ->get();
-        ->paginate(10);
+        $customers =Customer::with('employee')->paginate(10);
 
+        // $customers = Customer::join('employees', 'customers.salesRepEmployeeNumber', '=', 'employees.employeeNumber')
+        // ->select('customers.*', 'employees.firstName as salesRepFirstName', 'employees.lastName as salesRepLastName')
+        // ->paginate(10);
         return response()->json($customers);
     }
 
@@ -31,11 +29,18 @@ class CustomerController extends Controller
 
     public function getCustomersWithTotalOrderPlaced(){
 
-        $customersWithTotalOrderPlaced = Customer::select('customers.customerNumber','customers.customerName', DB::raw('count(orders.orderNumber) as total_orders'))
-        ->leftJoin('orders', 'customers.customerNumber', '=', 'orders.customerNumber')
-        ->groupBy('customers.customerNumber', 'customers.customerName')
-        ->get();
+        // $customersWithTotalOrderPlaced = Customer::select('customers.customerNumber','customers.customerName', DB::raw('count(orders.orderNumber) as total_orders'))
+        // ->leftJoin('orders', 'customers.customerNumber', '=', 'orders.customerNumber')
+        // ->groupBy('customers.customerNumber', 'customers.customerName')
+        // ->get();
 
+        $customersWithTotalOrderPlaced = Customer::withCount('orders')->get()->map( function($customer){
+            return [
+                'customerNumber'=> $customer->customerNumber,
+                'customerName'=> $customer->customerNumber,
+                'total_orders'=> $customer->orders_count,
+            ];
+        });
         return response()->json($customersWithTotalOrderPlaced);
     }
 }
