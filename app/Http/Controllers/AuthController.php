@@ -3,22 +3,11 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
-    
-    public function __construct() {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
-    }
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function register(Request $request){
 
         $validator = Validator::make($request->all(), [
@@ -39,19 +28,20 @@ class AuthController extends Controller
             'password' =>Hash::make($request->password),
         ]);
 
-        $token = auth('jwt')->login($user);
+        $token = auth()->login($user);
 
         return response()->json([
 
             'status'=>'success',
             'success'=>'User Created Successfully!',
             'user'=>$user,
-            'authorization'=>[
-                'token'=>Auth::refresh(),
-                'type'=>'bearer',
+            'authorization'=>
+            [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => auth()->factory()->getTTL() * 60
             ]
         ]);
-        return $this->createNewToken($token);
     }
 
     public function login(Request $request){
@@ -69,75 +59,39 @@ class AuthController extends Controller
 
         if(!$token = auth()->attempt($validator->validated())){
 
-            return response()->json(['error' => 'Unauthorized!']);
+            return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
-        return $this->createNewToken($token);
-    }
-    protected function createNewToken($token){
-        $user = auth('jwt')->user();
-
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            // 'expires_in' => auth('jwt')->factory()->getTTL() * 60,
-            'user' => $user,
-        ]);
-
+        return $this->respondWithToken($token);
     }
     public function profile(){
-
-        $profile = auth()->user();
         return response()->json([
-            "status" => 1,
+            "status" => "success",
             "message" => "User profile data",
-            'profile' => $profile,
+            "user" => auth()->user(),
         ]);
 
     }
-
-    // public function refresh()
-    // {
-    //     $newToken = JWTAuth::refresh();  // Refresh the JWT token
-    //     return response()->json([
-    //         'status'=> 'success',
-    //         'user'=> Auth::guard('api')->user(),
-    //         'authorization'=>[
-    //             'token'=>$newToken,
-    //             'type'=>'bearer',
-    //         ]
-    //     ]);
-    // }
 
     public function refresh()
-{
-    try {
-        if (! $token = JWTAuth::getToken()) {
-            return response()->json(['error' => 'Token not provided'], 400);
-        }
-
-        $newToken = JWTAuth::refresh($token);
-
-        return response()->json([
-            'status' => 'success',
-            'user' => Auth::guard('api')->user(),
-            'authorization' => [
-                'token' => $newToken,
-                'type' => 'bearer',
-            ]
-        ]);
-    } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
+    {
+        return $this->respondWithToken(auth()->refresh());
     }
-}
-
-
+    
     public function logout()
     {
-        Auth::guard('api')->logout();  // Specify the guard to logout from
-        return response()->json([
-                    "status" => 1,
-                    "message" => "User logged out"
-                ]);
+        auth()->logout();
+        return response()->json(['message' => 'Successfully logged out']);
+    }
+
+    protected function respondWithToken($token)
+    {
+        return response()->json(
+            [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => auth()->factory()->getTTL() * 60
+            ]
+        );
     }
 }

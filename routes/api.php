@@ -24,23 +24,18 @@ use Illuminate\Support\Facades\Route;
 
     Route::controller(AuthController::class)->group(function(){
 
-        Route::resource('/register', 'register');
-        Route::post('/login', 'login')->name('login');
+        Route::post('/register', 'register');
+        Route::post('/login', 'login');
     });
-    Route::get('/login', function(){
-
-        return "";
-    });
-
 
 Route::group(['middleware' => ['auth:api']], function(){
 
 
     Route::controller(AuthController::class)->group(function(){
         
-        Route::get('/logout', 'logout');
-        Route::get('/profile', 'profile');
-        Route::get('/refresh', 'refresh');
+        Route::post('/logout', 'logout');
+        Route::post('/profile', 'profile');
+        Route::post('/refresh', 'refresh');
         
     });
     
